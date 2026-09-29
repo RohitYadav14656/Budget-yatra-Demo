@@ -19,8 +19,8 @@ export default {
         'status-danger': '#B5463D',
       },
       fontFamily: {
-        serif: ['Lora', 'serif'],
-        sans: ['Plus Jakarta Sans', 'sans-serif'],
+        serif: ['"DM Serif Display"', 'serif'],
+        sans: ['Inter', 'sans-serif'],
       }
     },
   },

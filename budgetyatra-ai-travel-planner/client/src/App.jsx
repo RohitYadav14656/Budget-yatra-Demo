@@ -15,7 +15,7 @@ export default function App() {
             </div>
             <div className="min-w-0 truncate">
               <span className="text-xl font-serif font-bold tracking-tight text-[#20302D] group-hover:text-[#E86B4A] transition-colors block truncate">
-                BudgetYatta
+                BudgetYatra
               </span>
               <span className="block text-[10px] tracking-wider uppercase text-[#66706C] truncate">
                 AI Travel Ledger
@@ -23,8 +23,8 @@ export default function App() {
             </div>
           </Link>
 
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="px-3 py-1.5 text-xs font-bold bg-[#F7F3EC] border border-[#DED8CE] hover:border-[#20302D] rounded text-[#20302D] transition-colors shrink-0"
           >
             + New Trip
@@ -43,7 +43,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-[#FFFCF7] border-t border-[#DED8CE] mt-12 py-6 text-center text-xs text-[#66706C]">
         <div className="max-w-6xl mx-auto px-4">
-          <p>BudgetYatta — AI Budget Travel Planner for Indian Travellers</p>
+          <p>BudgetYatra — AI Budget Travel Planner for Indian Travellers</p>
         </div>
       </footer>
     </div>

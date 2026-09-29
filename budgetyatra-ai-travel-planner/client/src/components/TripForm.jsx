@@ -43,19 +43,19 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
   };
 
   return (
-    <div className="bg-[#FFFCF7] border border-[#DED8CE] rounded-lg p-5 sm:p-6 shadow-sm">
-      <div className="border-b border-[#DED8CE] pb-3 mb-5">
+    <div className="bg-[#FFFCF7] border border-[#DED8CE] rounded-lg p-4 sm:p-6 shadow-xs">
+      <div className="border-b border-[#DED8CE] pb-3 mb-4 sm:mb-5">
         <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#20302D]">
           Plan Your Journey
         </h2>
-        <p className="text-xs sm:text-sm text-[#66706C] mt-1">
-          Fill out your travel preferences for an AI-calculated Indian travel ledger.
+        <p className="text-xs text-[#66706C] mt-1">
+          Fill out your travel parameters for an AI-calculated Indian travel ledger.
         </p>
       </div>
 
       {errors && errors.length > 0 && (
-        <div className="mb-5 p-3 sm:p-4 bg-[#FDF2F0] border border-[#B5463D]/30 rounded text-[#B5463D] text-xs sm:text-sm">
-          <p className="font-semibold mb-1">Please fix the following:</p>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-[#FDF2F0] border border-[#B5463D]/30 rounded text-[#B5463D] text-xs sm:text-sm">
+          <p className="font-semibold mb-1">Please fix the following validation errors:</p>
           <ul className="list-disc list-inside space-y-1">
             {errors.map((err, idx) => (
               <li key={idx}>{err}</li>
@@ -116,7 +116,7 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           </div>
         </div>
 
-        {/* Budget */}
+        {/* Total Budget */}
         <div>
           <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-1">
             Total Budget (₹ INR)
@@ -129,11 +129,11 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
             value={formData.totalBudget}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 bg-[#F7F3EC] border border-[#DED8CE] rounded text-[#20302D] focus:outline-none focus:border-[#E86B4A] text-sm font-medium"
+            className="w-full px-3 py-2 bg-[#F7F3EC] border border-[#DED8CE] rounded text-[#20302D] focus:outline-none focus:border-[#E86B4A] text-sm font-semibold"
           />
         </div>
 
-        {/* Accommodation */}
+        {/* Accommodation Preference */}
         <div>
           <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-1">
             Accommodation Preference
@@ -144,7 +144,7 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
                 key={option}
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, accommodation: option }))}
-                className={`py-2 px-1 text-xs font-medium rounded border text-center transition-colors ${
+                className={`py-2 px-1 text-xs font-medium rounded border text-center transition-colors cursor-pointer ${
                   formData.accommodation === option
                     ? 'bg-[#E86B4A] text-white border-[#E86B4A]'
                     : 'bg-[#F7F3EC] text-[#20302D] border-[#DED8CE] hover:border-[#E86B4A]'
@@ -169,7 +169,7 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
                   key={interest}
                   type="button"
                   onClick={() => handleInterestToggle(interest)}
-                  className={`py-1.5 px-3 text-xs font-medium rounded border transition-colors ${
+                  className={`py-1.5 px-3 text-xs font-medium rounded border transition-colors cursor-pointer ${
                     isSelected
                       ? 'bg-[#20302D] text-[#FFFCF7] border-[#20302D]'
                       : 'bg-[#F7F3EC] text-[#66706C] border-[#DED8CE] hover:border-[#20302D]'
@@ -186,7 +186,7 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-[#E86B4A] hover:bg-[#d65a39] disabled:bg-[#d65a39]/50 text-white font-bold text-sm rounded border border-[#E86B4A] transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed mt-2"
+          className="w-full py-3 px-4 bg-[#E86B4A] hover:bg-[#d65a39] disabled:bg-[#d65a39]/50 text-white font-bold text-sm rounded border border-[#E86B4A] transition-colors shadow-xs cursor-pointer disabled:cursor-not-allowed mt-2"
         >
           {isLoading ? 'Crafting Your Ledger...' : 'Generate My Trip'}
         </button>

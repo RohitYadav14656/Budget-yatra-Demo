@@ -1,6 +1,6 @@
-# BudgetYatta — AI Budget Travel Planner
+# BudgetYatra — AI Budget Travel Planner
 
-BudgetYatta is a full-stack MERN application styled like a practical travel notebook and expense ledger for budget-conscious Indian travellers.
+BudgetYatra is a full-stack MERN application styled like a practical travel notebook and expense ledger for budget-conscious Indian travellers.
 
 ## Features
 - **Intelligent Groq AI Itineraries**: Generates realistic day-by-day plans tailored to duration, travellers, budget, and interests.
@@ -10,7 +10,7 @@ BudgetYatta is a full-stack MERN application styled like a practical travel note
 
 ## Tech Stack
 - **Frontend**: React (Vite), Tailwind CSS, Axios, React Router DOM
-- **Backend**: Node.js, Express.js, MongoDB Atlas (Mongoose), Groq SDK (`llama-3.3-70b-versatile`)
+- **Backend**: Node.js, Express.js, MongoDB Atlas (Mongoose), Groq SDK (`openai/gpt-oss-20b`)
 
 ## Setup Instructions
 
