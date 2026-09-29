@@ -7,9 +7,10 @@ const generateItineraryWithGroq = async (input) => {
   }
 
   const groq = new Groq({ apiKey });
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
-  const prompt = `Generate a realistic travel itinerary and expense breakdown in JSON format for:
+  const prompt = `You are a practical, budget-savvy Indian travel expert helper.
+Generate a realistic travel itinerary and expense breakdown in JSON format for:
 - Destination: ${input.destination}
 - Number of Days: ${input.days}
 - Travellers: ${input.travellers}
@@ -17,18 +18,18 @@ const generateItineraryWithGroq = async (input) => {
 - Accommodation Preference: ${input.accommodation}
 - Interests: ${input.interests.join(', ')}
 
-Strict JSON object schema to output:
+Strict JSON object schema required:
 {
-  "tripTitle": "String",
-  "summary": "String",
+  "tripTitle": "Catchy short trip title",
+  "summary": "2-3 sentence overview of this trip tailored to budget and interests",
   "itinerary": [
     {
       "day": 1,
-      "title": "String",
-      "morning": "String",
-      "afternoon": "String",
-      "evening": "String",
-      "foodSuggestion": "String",
+      "title": "Day title",
+      "morning": "Morning activity description",
+      "afternoon": "Afternoon activity description",
+      "evening": "Evening activity description",
+      "foodSuggestion": "Local budget dish or food spot recommendation",
       "estimatedCost": 1200
     }
   ],
@@ -39,57 +40,39 @@ Strict JSON object schema to output:
     "activities": 1500,
     "miscellaneous": 1000
   },
-  "travelTips": ["Tip 1", "Tip 2"]
+  "travelTips": [
+    "Practical money-saving tip 1",
+    "Practical local travel tip 2",
+    "Safety or transport tip 3"
+  ]
 }
 
-Ensure numeric values are plain numbers in INR. Return exactly ${input.days} day items in the itinerary array.`;
+IMPORTANT RULES:
+1. Output ONLY the JSON object. Do not add intro/outro comments or markdown fences.
+2. All numeric values must be plain numbers in INR.
+3. Ensure the "itinerary" array has exactly ${input.days} items (Day 1 to Day ${input.days}).`;
 
-  let responseText = '';
+  const completion = await groq.chat.completions.create({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are an API assistant that outputs strictly valid JSON objects only. Never output markdown code fences or conversational text.'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ],
+    model: model,
+    temperature: 0.5
+  });
 
-  try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an API assistant that MUST respond only with a valid JSON object matching the requested schema.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      model: model,
-      temperature: 0.5,
-      response_format: { type: 'json_object' }
-    });
-
-    responseText = completion.choices[0]?.message?.content || '';
-  } catch (error) {
-    // If strict json_object response format fails on Groq, retry without response_format flag
-    console.warn('Groq json_object mode notice, retrying without strict flag:', error.message);
-    const fallbackCompletion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an API assistant that MUST respond only with a raw JSON object without markdown code fences.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      model: model,
-      temperature: 0.5
-    });
-
-    responseText = fallbackCompletion.choices[0]?.message?.content || '';
-  }
-
+  const responseText = completion.choices[0]?.message?.content;
   if (!responseText) {
     throw new Error('Received empty response from Groq AI service.');
   }
 
-  // Clean potential markdown backticks or extra text
+  // Extract JSON string inside curly braces
   let cleanJsonString = responseText.trim();
   const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
@@ -100,8 +83,8 @@ Ensure numeric values are plain numbers in INR. Return exactly ${input.days} day
     const parsedData = JSON.parse(cleanJsonString);
     return parsedData;
   } catch (err) {
-    console.error('Groq Output JSON Parse Error:', cleanJsonString);
-    throw new Error('AI generated invalid JSON format. Please click Generate again.');
+    console.error('Groq Output JSON Parse Error Raw Content:', responseText);
+    throw new Error('AI generated invalid JSON structure. Please click Generate again.');
   }
 };
 
