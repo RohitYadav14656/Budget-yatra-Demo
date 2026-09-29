@@ -6,6 +6,7 @@ const generateItineraryWithGroq = async (input) => {
     throw new Error('GROQ_API_KEY is not configured in server environment variables.');
   }
 
+  // Instantiate Groq client using environment key and fallback model
   const groq = new Groq({ apiKey });
   const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
@@ -85,7 +86,7 @@ Ensure the "itinerary" array has exactly ${input.days} items (Day 1 to Day ${inp
     const parsedData = JSON.parse(cleanJsonString);
     return parsedData;
   } catch (err) {
-    console.error('Groq Output JSON Parse Error:', cleanJsonString);
+    console.error('Groq Output JSON Parse Error');
     throw new Error('AI generated invalid JSON structure. Please try again.');
   }
 };

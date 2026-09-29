@@ -22,7 +22,7 @@ export default function PlannerPage() {
         setPreviousTrips(res.data);
       }
     } catch (err) {
-      console.error('Failed to load previous trips:', err);
+      console.error('Failed to load saved trips:', err);
     } finally {
       setIsListLoading(false);
     }
@@ -48,7 +48,7 @@ export default function PlannerPage() {
       if (responseData?.errors) {
         setFormErrors(responseData.errors);
       } else {
-        setApiError(responseData?.message || 'Failed to generate itinerary. Check your API configuration.');
+        setApiError(responseData?.message || 'Failed to generate itinerary. Check backend connectivity.');
       }
     } finally {
       setIsLoading(false);
@@ -58,14 +58,14 @@ export default function PlannerPage() {
   return (
     <div className="space-y-6">
       {apiError && (
-        <div className="p-4 bg-[#FDF2F0] border border-[#B5463D]/30 rounded text-[#B5463D] text-sm">
+        <div className="p-4 bg-[#FDF2F0] border border-[#B5463D]/30 rounded-lg text-[#B5463D] text-xs sm:text-sm font-medium">
           <strong>Error: </strong>{apiError}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Form Section */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Planner Form and Generated Results */}
+        <div className="lg:col-span-2 space-y-6 min-w-0">
           <TripForm 
             onSubmit={handleFormSubmit} 
             isLoading={isLoading} 
@@ -73,17 +73,17 @@ export default function PlannerPage() {
           />
 
           {isLoading && (
-            <div className="bg-[#FFFCF7] border border-[#DED8CE] rounded-lg p-8 text-center space-y-3">
+            <div className="bg-[#FFFCF7] border border-[#DED8CE] rounded-lg p-6 sm:p-10 text-center space-y-3">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#E86B4A] border-t-transparent"></div>
               <h3 className="text-lg font-serif font-bold text-[#20302D]">Calculating Travel Expenses</h3>
               <p className="text-xs text-[#66706C]">
-                Groq AI is building an optimal Indian travel ledger based on your budget...
+                Groq AI is building your custom Indian budget travel ledger...
               </p>
             </div>
           )}
 
           {currentTrip && !isLoading && (
-            <div className="space-y-6">
+            <div className="space-y-6 min-w-0">
               <TripSummary trip={currentTrip} />
               <ExpenseBreakdown 
                 expenseBreakdown={currentTrip.expenseBreakdown} 
@@ -95,8 +95,8 @@ export default function PlannerPage() {
           )}
         </div>
 
-        {/* Sidebar Previous Trips */}
-        <div className="lg:col-span-1">
+        {/* Saved Trips Sidebar */}
+        <div className="lg:col-span-1 min-w-0">
           <PreviousTrips 
             trips={previousTrips} 
             isLoading={isListLoading} 

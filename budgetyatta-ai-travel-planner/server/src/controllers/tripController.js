@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Trip = require('../models/Trip');
 const validateTripInput = require('../utils/validateTripInput');
 const { generateItineraryWithGroq } = require('../services/aiService');
@@ -19,11 +20,18 @@ exports.generateTrip = async (req, res, next) => {
     // Call Groq AI service
     const aiResponse = await generateItineraryWithGroq(sanitized);
 
-    // Validate required AI fields
-    if (!aiResponse.itinerary || !Array.isArray(aiResponse.itinerary) || !aiResponse.expenseBreakdown) {
+    // Validate Groq AI response structure before saving to DB
+    if (
+      !aiResponse ||
+      !aiResponse.itinerary ||
+      !Array.isArray(aiResponse.itinerary) ||
+      aiResponse.itinerary.length === 0 ||
+      !aiResponse.expenseBreakdown ||
+      typeof aiResponse.expenseBreakdown !== 'object'
+    ) {
       return res.status(502).json({
         success: false,
-        message: 'AI service returned incomplete itinerary data.'
+        message: 'AI service returned invalid or incomplete itinerary data structure.'
       });
     }
 
@@ -37,7 +45,7 @@ exports.generateTrip = async (req, res, next) => {
 
     const estimatedTotalCost = stay + food + transport + activities + miscellaneous;
 
-    // Server-side budget status determination
+    // Server-side budget status calculation
     const budget = sanitized.totalBudget;
     let budgetStatus = 'within_budget';
     if (estimatedTotalCost > budget) {
@@ -46,7 +54,7 @@ exports.generateTrip = async (req, res, next) => {
       budgetStatus = 'near_budget';
     }
 
-    // Construct final document
+    // Save trip document into MongoDB
     const newTrip = new Trip({
       destination: sanitized.destination,
       days: sanitized.days,
@@ -78,7 +86,10 @@ exports.generateTrip = async (req, res, next) => {
 // @route   GET /api/trips
 exports.getAllTrips = async (req, res, next) => {
   try {
-    const trips = await Trip.find().select('destination days travellers totalBudget tripTitle budgetStatus createdAt estimatedTotalCost').sort({ createdAt: -1 });
+    const trips = await Trip.find()
+      .select('destination days travellers totalBudget tripTitle budgetStatus createdAt estimatedTotalCost')
+      .sort({ createdAt: -1 });
+
     res.status(200).json({
       success: true,
       count: trips.length,
@@ -93,21 +104,29 @@ exports.getAllTrips = async (req, res, next) => {
 // @route   GET /api/trips/:id
 exports.getTripById = async (req, res, next) => {
   try {
-    const trip = await Trip.findById(req.params.id);
+    const { id } = req.params;
+
+    // Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Trip ID format'
+      });
+    }
+
+    const trip = await Trip.findById(id);
     if (!trip) {
       return res.status(404).json({
         success: false,
         message: 'Trip plan not found'
       });
     }
+
     res.status(200).json({
       success: true,
       data: trip
     });
   } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ success: false, message: 'Invalid Trip ID' });
-    }
     next(error);
   }
 };

@@ -41,14 +41,14 @@ export default function TripDetailPage() {
     return (
       <div className="py-12 text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#E86B4A] border-t-transparent mb-3"></div>
-        <p className="text-sm text-[#66706C]">Loading trip details...</p>
+        <p className="text-xs sm:text-sm text-[#66706C]">Loading trip details...</p>
       </div>
     );
   }
 
   if (error || !trip) {
     return (
-      <div className="bg-[#FFFCF7] border border-[#DED8CE] rounded-lg p-6 text-center space-y-4">
+      <div className="bg-[#FFFCF7] border border-[#DED8CE] rounded-lg p-6 sm:p-8 text-center space-y-4">
         <h2 className="text-xl font-serif font-bold text-[#B5463D]">Trip Not Found</h2>
         <p className="text-xs text-[#66706C]">{error || 'The requested trip itinerary does not exist.'}</p>
         <Link 
@@ -72,8 +72,8 @@ export default function TripDetailPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6 min-w-0">
           <TripSummary trip={trip} />
           <ExpenseBreakdown 
             expenseBreakdown={trip.expenseBreakdown} 
@@ -83,7 +83,7 @@ export default function TripDetailPage() {
           <ItineraryTimeline itinerary={trip.itinerary} />
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 min-w-0">
           <PreviousTrips 
             trips={previousTrips} 
             isLoading={false} 
