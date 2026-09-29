@@ -5,7 +5,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Middleware
+// Configure CORS using environment variable
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
   origin: [clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
@@ -14,15 +14,15 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health Check API
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'BudgetYatta API is running smoothly' });
 });
 
-// Trip Routes
+// Trip API routes
 app.use('/api/trips', tripRoutes);
 
-// Error Handler Middleware
+// Central error handler middleware
 app.use(errorHandler);
 
 module.exports = app;
