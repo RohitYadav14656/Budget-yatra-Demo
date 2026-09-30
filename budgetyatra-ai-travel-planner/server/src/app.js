@@ -5,10 +5,23 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Configure CORS using environment variable
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+// Configure CORS dynamically to support Vercel preview/production links and local dev
 app.use(cors({
-  origin: [clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const cleanOrigin = origin.replace(/\/$/, '');
+    const cleanClientUrl = (process.env.CLIENT_URL || '').replace(/\/$/, '');
+    
+    if (
+      cleanOrigin === cleanClientUrl ||
+      cleanOrigin.endsWith('.vercel.app') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
