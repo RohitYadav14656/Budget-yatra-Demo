@@ -1,5 +1,24 @@
 const Groq = require('groq-sdk');
 
+const extractJson = (raw) => {
+  let text = raw.trim();
+
+  text = text.replace(/^\uFEFF/, '');
+
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) {
+    text = fenceMatch[1].trim();
+  }
+
+  const braceStart = text.indexOf('{');
+  const braceEnd = text.lastIndexOf('}');
+  if (braceStart !== -1 && braceEnd !== -1 && braceEnd > braceStart) {
+    text = text.substring(braceStart, braceEnd + 1);
+  }
+
+  return text;
+};
+
 const generateItineraryWithGroq = async (input) => {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -71,22 +90,19 @@ Rules:
     throw new Error('Received empty response from AI service.');
   }
 
-  console.log('[AI RAW RESPONSE]:', responseText.substring(0, 300));
+  console.log('[AI MODEL]:', model);
+  console.log('[AI RAW RESPONSE FULL]:', responseText);
 
-  let cleanJsonString = responseText.trim();
-  cleanJsonString = cleanJsonString.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-
-  const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    cleanJsonString = jsonMatch[0];
-  }
+  const cleanJsonString = extractJson(responseText);
+  console.log('[AI CLEAN JSON START]:', cleanJsonString.substring(0, 200));
 
   try {
     const parsedData = JSON.parse(cleanJsonString);
     console.log('[AI PARSED KEYS]:', Object.keys(parsedData));
     return parsedData;
   } catch (err) {
-    console.error('[AI JSON PARSE ERROR] Raw:', responseText.substring(0, 500));
+    console.error('[AI JSON PARSE FAILED]');
+    console.error('[CLEAN JSON WAS]:', cleanJsonString.substring(0, 1000));
     throw new Error('Unable to parse generated itinerary structure. Please try generating again.');
   }
 };
