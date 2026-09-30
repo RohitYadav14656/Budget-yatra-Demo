@@ -3,8 +3,6 @@ const Trip = require('../models/Trip');
 const validateTripInput = require('../utils/validateTripInput');
 const { generateItineraryWithGroq } = require('../services/aiService');
 
-// @desc    Generate new trip itinerary via AI and save to DB
-// @route   POST /api/trips/generate
 exports.generateTrip = async (req, res, next) => {
   try {
     const { isValid, errors, sanitized } = validateTripInput(req.body);
@@ -17,10 +15,16 @@ exports.generateTrip = async (req, res, next) => {
       });
     }
 
-    // Call Groq AI service
     const aiResponse = await generateItineraryWithGroq(sanitized);
 
-    // Validate Groq AI response structure before saving to DB
+    if (aiResponse && aiResponse.isInvalidDestination) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: [`"${sanitized.destination}" is not a recognized travel destination. Please enter a real city, state, or place.`]
+      });
+    }
+
     if (
       !aiResponse ||
       !aiResponse.itinerary ||
@@ -31,11 +35,10 @@ exports.generateTrip = async (req, res, next) => {
     ) {
       return res.status(502).json({
         success: false,
-        message: 'AI service returned invalid or incomplete itinerary data structure.'
+        message: 'Itinerary generation returned invalid or incomplete data structure.'
       });
     }
 
-    // Server-side calculation of expense breakdown total (Do not trust AI arithmetic)
     const breakdown = aiResponse.expenseBreakdown;
     const stay = Number(breakdown.stay) || 0;
     const food = Number(breakdown.food) || 0;
@@ -45,7 +48,6 @@ exports.generateTrip = async (req, res, next) => {
 
     const estimatedTotalCost = stay + food + transport + activities + miscellaneous;
 
-    // Server-side budget status calculation
     const budget = sanitized.totalBudget;
     let budgetStatus = 'within_budget';
     if (estimatedTotalCost > budget) {
@@ -54,7 +56,6 @@ exports.generateTrip = async (req, res, next) => {
       budgetStatus = 'near_budget';
     }
 
-    // Save trip document into MongoDB
     const newTrip = new Trip({
       destination: sanitized.destination,
       days: sanitized.days,
@@ -82,8 +83,6 @@ exports.generateTrip = async (req, res, next) => {
   }
 };
 
-// @desc    Get all saved trips (latest first)
-// @route   GET /api/trips
 exports.getAllTrips = async (req, res, next) => {
   try {
     const trips = await Trip.find()
@@ -100,13 +99,10 @@ exports.getAllTrips = async (req, res, next) => {
   }
 };
 
-// @desc    Get trip details by ID
-// @route   GET /api/trips/:id
 exports.getTripById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Validate MongoDB ObjectId format
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,

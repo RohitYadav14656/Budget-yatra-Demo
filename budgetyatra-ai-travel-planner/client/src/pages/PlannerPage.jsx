@@ -64,7 +64,6 @@ export default function PlannerPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Planner Form and Generated Results */}
         <div className="lg:col-span-2 space-y-6 min-w-0">
           <TripForm 
             onSubmit={handleFormSubmit} 
@@ -77,7 +76,7 @@ export default function PlannerPage() {
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#E86B4A] border-t-transparent"></div>
               <h3 className="text-lg font-serif font-bold text-[#20302D]">Calculating Travel Expenses</h3>
               <p className="text-xs text-[#66706C]">
-                Groq AI is building your custom Indian budget travel ledger...
+                Building your custom travel itinerary and expense ledger...
               </p>
             </div>
           )}
@@ -95,7 +94,6 @@ export default function PlannerPage() {
           )}
         </div>
 
-        {/* Saved Trips Sidebar */}
         <div className="lg:col-span-1 min-w-0">
           <PreviousTrips 
             trips={previousTrips} 

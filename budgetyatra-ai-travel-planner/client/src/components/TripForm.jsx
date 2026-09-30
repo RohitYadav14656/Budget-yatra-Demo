@@ -49,7 +49,7 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           Plan Your Journey
         </h2>
         <p className="text-xs text-[#66706C] mt-1">
-          Fill out your travel parameters for an AI-calculated Indian travel ledger.
+          Fill out your travel details to calculate a custom budget travel ledger.
         </p>
       </div>
 
@@ -65,7 +65,6 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-        {/* Destination */}
         <div>
           <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-1">
             Destination City or Region
@@ -81,7 +80,6 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           />
         </div>
 
-        {/* Days & Travellers */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-1">
@@ -116,7 +114,6 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           </div>
         </div>
 
-        {/* Total Budget */}
         <div>
           <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-1">
             Total Budget (₹ INR)
@@ -133,7 +130,6 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           />
         </div>
 
-        {/* Accommodation Preference */}
         <div>
           <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-1">
             Accommodation Preference
@@ -156,7 +152,6 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           </div>
         </div>
 
-        {/* Interests */}
         <div>
           <label className="block text-xs font-bold text-[#20302D] uppercase tracking-wider mb-2">
             Interests (Select at least one)
@@ -182,7 +177,6 @@ export default function TripForm({ onSubmit, isLoading, errors }) {
           </div>
         </div>
 
-        {/* Submit button */}
         <button
           type="submit"
           disabled={isLoading}

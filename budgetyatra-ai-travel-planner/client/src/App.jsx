@@ -6,7 +6,6 @@ import TripDetailPage from './pages/TripDetailPage';
 export default function App() {
   return (
     <div className="min-h-screen bg-[#F7F3EC] text-[#20302D] font-sans antialiased selection:bg-[#E86B4A]/20">
-      {/* Notebook Header */}
       <header className="bg-[#FFFCF7] border-b border-[#DED8CE] sticky top-0 z-10 shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 group min-w-0">
@@ -18,7 +17,7 @@ export default function App() {
                 BudgetYatra
               </span>
               <span className="block text-[10px] tracking-wider uppercase text-[#66706C] truncate">
-                AI Travel Ledger
+                Travel Planner & Ledger
               </span>
             </div>
           </Link>
@@ -32,7 +31,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <Routes>
           <Route path="/" element={<PlannerPage />} />
@@ -40,10 +38,9 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Footer */}
       <footer className="bg-[#FFFCF7] border-t border-[#DED8CE] mt-12 py-6 text-center text-xs text-[#66706C]">
         <div className="max-w-6xl mx-auto px-4">
-          <p>BudgetYatra — AI Budget Travel Planner for Indian Travellers</p>
+          <p>BudgetYatra — Smart Budget Travel Planner for Indian Travellers</p>
         </div>
       </footer>
     </div>

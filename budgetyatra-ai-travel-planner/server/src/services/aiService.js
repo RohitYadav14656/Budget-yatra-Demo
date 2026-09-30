@@ -49,8 +49,9 @@ Strict JSON object schema required:
 
 IMPORTANT RULES:
 1. Output ONLY the JSON object. Do not add intro/outro comments or markdown fences.
-2. All numeric values must be plain numbers in INR.
-3. Ensure the "itinerary" array has exactly ${input.days} items (Day 1 to Day ${input.days}).`;
+2. If the destination "${input.destination}" is NOT a real geographical place, city, region, or tourist destination (e.g. fake/gibberish place name), return strictly: {"isInvalidDestination": true, "message": "Invalid travel destination."}
+3. All numeric values must be plain numbers in INR.
+4. Ensure the "itinerary" array has exactly ${input.days} items (Day 1 to Day ${input.days}).`;
 
   const completion = await groq.chat.completions.create({
     messages: [
@@ -69,10 +70,9 @@ IMPORTANT RULES:
 
   const responseText = completion.choices[0]?.message?.content;
   if (!responseText) {
-    throw new Error('Received empty response from Groq AI service.');
+    throw new Error('Received empty response from AI service.');
   }
 
-  // Extract JSON string inside curly braces
   let cleanJsonString = responseText.trim();
   const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
@@ -83,8 +83,8 @@ IMPORTANT RULES:
     const parsedData = JSON.parse(cleanJsonString);
     return parsedData;
   } catch (err) {
-    console.error('Groq Output JSON Parse Error Raw Content:', responseText);
-    throw new Error('AI generated invalid JSON structure. Please click Generate again.');
+    console.error('Output JSON Parse Error Raw Content:', responseText);
+    throw new Error('Unable to parse generated itinerary structure. Please try generating again.');
   }
 };
 

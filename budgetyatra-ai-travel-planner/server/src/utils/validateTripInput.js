@@ -13,8 +13,12 @@ const validateTripInput = (data) => {
   const accommodation = data.accommodation ? String(data.accommodation).trim() : '';
   let interests = Array.isArray(data.interests) ? data.interests : [];
 
-  if (!destination || destination.length < 2) {
-    errors.push('Destination is required and must be at least 2 characters long.');
+  const destinationRegex = /^[a-zA-Z\s,.'-]{2,50}$/;
+  const hasVowel = /[aeiouyAEIOUY]/.test(destination);
+  const isKeyboardMash = /(.)\1{3,}|^(dfgh|asdf|qwert|zxcv|fghj|ghjk|hjkl|yuiop|xcvb|cvbn|vbnm)/i.test(destination);
+
+  if (!destination || destination.length < 2 || destination.length > 50 || !destinationRegex.test(destination) || !hasVowel || isKeyboardMash) {
+    errors.push('Please enter a valid travel destination (e.g. Jaipur, Goa, Manali, Paris).');
   }
 
   if (isNaN(days) || days < 1 || days > 30) {

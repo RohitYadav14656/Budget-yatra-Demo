@@ -4,7 +4,14 @@ const connectDB = require('./config/db');
 
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB Atlas first, then listen for incoming connections
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`BudgetYatra server running on port ${PORT}`);

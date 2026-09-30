@@ -1,33 +1,68 @@
-# BudgetYatra — AI Budget Travel Planner
+# BudgetYatra — Travel Planner & Expense Ledger
 
-BudgetYatra is a full-stack MERN application styled like a practical travel notebook and expense ledger for budget-conscious Indian travellers.
+BudgetYatra is a full-stack MERN travel planning application styled like a practical travel notebook and expense ledger for travellers in India.
 
-## Features
-- **Intelligent Groq AI Itineraries**: Generates realistic day-by-day plans tailored to duration, travellers, budget, and interests.
-- **Server-Side Expense Ledger**: Independent calculation of totals and budget status (`within_budget`, `near_budget`, `over_budget`).
-- **Saved Trip Ledgers**: View previously generated trips saved in MongoDB Atlas.
-- **Responsive Notebook Design**: Custom terracotta & earthy palette built mobile-first with Tailwind CSS.
+## Key Features
+
+- **Custom Travel Itineraries**: Generates realistic day-by-day plans tailored to trip duration, travellers, budget, and interests.
+- **Server-Side Expense Ledger**: Automatic calculation of cost breakdowns and budget status (`within_budget`, `near_budget`, `over_budget`).
+- **Saved Trip History**: View, load, and inspect previously generated trips saved in MongoDB Atlas.
+- **Responsive Earthy Design**: Custom terracotta palette built mobile-first using Tailwind CSS.
+- **Strict Input & Destination Validation**: Ensures travel inputs and destination entries are verified before generating itineraries.
 
 ## Tech Stack
-- **Frontend**: React (Vite), Tailwind CSS, Axios, React Router DOM
-- **Backend**: Node.js, Express.js, MongoDB Atlas (Mongoose), Groq SDK (`openai/gpt-oss-20b`)
 
-## Setup Instructions
+- **Frontend**: React, Tailwind CSS, Axios, React Router DOM, Vite
+- **Backend**: Node.js, Express.js, MongoDB Atlas (Mongoose), Groq SDK
+
+## Project Structure
+
+```
+budgetyatra-ai-travel-planner/
+├── client/          # React frontend (Vite + Tailwind CSS)
+└── server/          # Node.js Express backend API
+```
+
+## Environment Setup
 
 ### 1. Backend Setup
+
 ```bash
 cd server
 npm install
-cp .env.example .env
-# Fill in MONGODB_URI and GROQ_API_KEY in .env
+```
+
+Create a `.env` file in the `server/` directory:
+
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-20b
+CLIENT_URL=http://localhost:5173
+```
+
+Start the backend server:
+```bash
 npm run dev
 ```
 
 ### 2. Frontend Setup
+
 ```bash
 cd client
 npm install
-cp .env.example .env
+```
+
+Create a `.env` file in the `client/` directory:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+Start the frontend server:
+```bash
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+Open `http://localhost:5173` in your browser.

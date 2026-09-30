@@ -61,7 +61,6 @@ export default function TripSummary({ trip }) {
         {summary}
       </p>
 
-      {/* Key Numbers Ledger Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-1">
         <div className="p-3 bg-[#F7F3EC] border border-[#DED8CE] rounded min-w-0">
           <span className="block text-[10px] font-bold text-[#66706C] uppercase truncate">Total Budget</span>
