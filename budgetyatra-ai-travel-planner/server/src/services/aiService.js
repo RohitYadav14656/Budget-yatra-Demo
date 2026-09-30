@@ -48,7 +48,7 @@ Strict JSON object schema required:
 }
 
 IMPORTANT RULES:
-1. Output ONLY the JSON object. Do not add intro/outro comments or markdown fences.
+1. Output ONLY a raw, valid JSON object. Do not add intro/outro text, comments, or markdown code blocks.
 2. If the destination "${input.destination}" is NOT a real geographical place, city, region, or tourist destination (e.g. fake/gibberish place name), return strictly: {"isInvalidDestination": true, "message": "Invalid travel destination."}
 3. All numeric values must be plain numbers in INR.
 4. Ensure the "itinerary" array has exactly ${input.days} items (Day 1 to Day ${input.days}).`;
@@ -57,7 +57,7 @@ IMPORTANT RULES:
     messages: [
       {
         role: 'system',
-        content: 'You are an API assistant that outputs strictly valid JSON objects only. Never output markdown code fences or conversational text.'
+        content: 'You are an API assistant that outputs strictly valid JSON objects. Never output markdown formatting or extra text.'
       },
       {
         role: 'user',
@@ -65,7 +65,8 @@ IMPORTANT RULES:
       }
     ],
     model: model,
-    temperature: 0.5
+    temperature: 0.3,
+    response_format: { type: 'json_object' }
   });
 
   const responseText = completion.choices[0]?.message?.content;
@@ -74,6 +75,9 @@ IMPORTANT RULES:
   }
 
   let cleanJsonString = responseText.trim();
+  cleanJsonString = cleanJsonString.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  cleanJsonString = cleanJsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+
   const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     cleanJsonString = jsonMatch[0];
