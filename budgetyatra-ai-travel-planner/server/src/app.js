@@ -27,13 +27,14 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoints
+app.get(['/', '/health', '/api/health'], (req, res) => {
   res.status(200).json({ status: 'ok', message: 'BudgetYatra API is running smoothly' });
 });
 
-// Trip API routes
+// Trip API routes (supports both /api/trips and /trips fallback)
 app.use('/api/trips', tripRoutes);
+app.use('/trips', tripRoutes);
 
 // Central error handler middleware
 app.use(errorHandler);
