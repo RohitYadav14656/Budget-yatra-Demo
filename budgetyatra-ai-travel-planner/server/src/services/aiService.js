@@ -9,28 +9,29 @@ const generateItineraryWithGroq = async (input) => {
   const groq = new Groq({ apiKey });
   const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
-  const prompt = `You are a practical, budget-savvy Indian travel expert helper.
-Generate a realistic travel itinerary and expense breakdown in JSON format for:
+  const prompt = `Generate a JSON travel itinerary for the following trip. Respond ONLY with the JSON object, no other text.
+
+Trip details:
 - Destination: ${input.destination}
-- Number of Days: ${input.days}
+- Days: ${input.days}
 - Travellers: ${input.travellers}
-- Total Budget: ₹${input.totalBudget} INR
-- Accommodation Preference: ${input.accommodation}
+- Total Budget: INR ${input.totalBudget}
+- Accommodation: ${input.accommodation}
 - Interests: ${input.interests.join(', ')}
 
-Strict JSON object schema required:
+Required JSON structure (fill in real values, do not include comments):
 {
-  "tripTitle": "Catchy short trip title",
-  "summary": "2-3 sentence overview of this trip tailored to budget and interests",
+  "tripTitle": "string",
+  "summary": "string",
   "itinerary": [
     {
       "day": 1,
-      "title": "Day title",
-      "morning": "Morning activity description",
-      "afternoon": "Afternoon activity description",
-      "evening": "Evening activity description",
-      "foodSuggestion": "Local budget dish or food spot recommendation",
-      "estimatedCost": 1200
+      "title": "string",
+      "morning": "string",
+      "afternoon": "string",
+      "evening": "string",
+      "foodSuggestion": "string",
+      "estimatedCost": 1000
     }
   ],
   "expenseBreakdown": {
@@ -40,24 +41,20 @@ Strict JSON object schema required:
     "activities": 1500,
     "miscellaneous": 1000
   },
-  "travelTips": [
-    "Practical money-saving tip 1",
-    "Practical local travel tip 2",
-    "Safety or transport tip 3"
-  ]
+  "travelTips": ["string", "string", "string"]
 }
 
-IMPORTANT RULES:
-1. Output ONLY a raw, valid JSON object. Do not add intro/outro text, comments, or markdown code blocks.
-2. If the destination "${input.destination}" is NOT a real geographical place, city, region, or tourist destination (e.g. fake/gibberish place name), return strictly: {"isInvalidDestination": true, "message": "Invalid travel destination."}
-3. All numeric values must be plain numbers in INR.
-4. Ensure the "itinerary" array has exactly ${input.days} items (Day 1 to Day ${input.days}).`;
+Rules:
+- If "${input.destination}" is not a real place, return: {"isInvalidDestination": true}
+- The itinerary array must have exactly ${input.days} objects.
+- All cost values are plain numbers in INR.
+- Return only the JSON object, nothing else.`;
 
   const completion = await groq.chat.completions.create({
     messages: [
       {
         role: 'system',
-        content: 'You are an API assistant that outputs strictly valid JSON objects. Never output markdown formatting or extra text.'
+        content: 'You output only raw JSON objects with no markdown, no code fences, no explanation.'
       },
       {
         role: 'user',
@@ -65,7 +62,8 @@ IMPORTANT RULES:
       }
     ],
     model: model,
-    temperature: 0.3
+    temperature: 0.3,
+    max_tokens: 4096
   });
 
   const responseText = completion.choices[0]?.message?.content;
@@ -73,9 +71,10 @@ IMPORTANT RULES:
     throw new Error('Received empty response from AI service.');
   }
 
+  console.log('[AI RAW RESPONSE]:', responseText.substring(0, 300));
+
   let cleanJsonString = responseText.trim();
-  cleanJsonString = cleanJsonString.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  cleanJsonString = cleanJsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+  cleanJsonString = cleanJsonString.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
 
   const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
@@ -84,9 +83,10 @@ IMPORTANT RULES:
 
   try {
     const parsedData = JSON.parse(cleanJsonString);
+    console.log('[AI PARSED KEYS]:', Object.keys(parsedData));
     return parsedData;
   } catch (err) {
-    console.error('Output JSON Parse Error Raw Content:', responseText);
+    console.error('[AI JSON PARSE ERROR] Raw:', responseText.substring(0, 500));
     throw new Error('Unable to parse generated itinerary structure. Please try generating again.');
   }
 };
