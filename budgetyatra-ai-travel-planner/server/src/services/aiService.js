@@ -1,8 +1,9 @@
 const Groq = require('groq-sdk');
 
 const extractJson = (raw) => {
-  let text = raw.trim();
+  if (!raw || typeof raw !== 'string') return '';
 
+  let text = raw.trim();
   text = text.replace(/^\uFEFF/, '');
 
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -11,24 +12,40 @@ const extractJson = (raw) => {
   }
 
   const braceStart = text.indexOf('{');
-  const braceEnd = text.lastIndexOf('}');
-  if (braceStart !== -1 && braceEnd !== -1 && braceEnd > braceStart) {
-    text = text.substring(braceStart, braceEnd + 1);
+  if (braceStart === -1) return '';
+
+  let depth = 0;
+  let braceEnd = -1;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = braceStart; i < text.length; i++) {
+    const ch = text[i];
+
+    if (escapeNext) { escapeNext = false; continue; }
+    if (ch === '\\' && inString) { escapeNext = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        braceEnd = i;
+        break;
+      }
+    }
   }
 
-  return text;
+  if (braceEnd === -1) {
+    return text.substring(braceStart);
+  }
+
+  return text.substring(braceStart, braceEnd + 1);
 };
 
-const generateItineraryWithGroq = async (input) => {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw new Error('GROQ_API_KEY is not configured in server environment variables.');
-  }
-
-  const groq = new Groq({ apiKey });
-  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
-
-  const prompt = `Generate a JSON travel itinerary for the following trip. Respond ONLY with the JSON object, no other text.
+const buildPrompt = (input) => {
+  return `You are a travel planning assistant. Your ONLY job is to output a single valid JSON object.
 
 Trip details:
 - Destination: ${input.destination}
@@ -38,7 +55,7 @@ Trip details:
 - Accommodation: ${input.accommodation}
 - Interests: ${input.interests.join(', ')}
 
-Required JSON structure (fill in real values, do not include comments):
+Output EXACTLY this JSON structure with real values. Numbers must be plain integers:
 {
   "tripTitle": "string",
   "summary": "string",
@@ -64,16 +81,18 @@ Required JSON structure (fill in real values, do not include comments):
 }
 
 Rules:
-- If "${input.destination}" is not a real place, return: {"isInvalidDestination": true}
-- The itinerary array must have exactly ${input.days} objects.
-- All cost values are plain numbers in INR.
-- Return only the JSON object, nothing else.`;
+- If "${input.destination}" is not a real place, return ONLY: {"isInvalidDestination": true}
+- The itinerary array MUST have exactly ${input.days} objects (one per day).
+- All cost values are plain integers in INR.
+- Output ONLY the JSON object. No other text.`;
+};
 
-  const completion = await groq.chat.completions.create({
+const callGroq = async (groq, model, prompt, useJsonMode) => {
+  const options = {
     messages: [
       {
         role: 'system',
-        content: 'You output only raw JSON objects with no markdown, no code fences, no explanation.'
+        content: 'You are a JSON-only travel planner. Output ONLY a raw JSON object. No markdown, no code fences, no explanations. Your entire response must be valid JSON parseable by JSON.parse().'
       },
       {
         role: 'user',
@@ -81,30 +100,93 @@ Rules:
       }
     ],
     model: model,
-    temperature: 0.3,
-    max_tokens: 4096
-  });
+    temperature: 0.2,
+    max_tokens: 6000
+  };
 
-  const responseText = completion.choices[0]?.message?.content;
-  if (!responseText) {
-    throw new Error('Received empty response from AI service.');
+  if (useJsonMode) {
+    options.response_format = { type: 'json_object' };
   }
 
-  console.log('[AI MODEL]:', model);
-  console.log('[AI RAW RESPONSE FULL]:', responseText);
+  const completion = await groq.chat.completions.create(options);
+  return completion.choices[0]?.message?.content || '';
+};
 
-  const cleanJsonString = extractJson(responseText);
-  console.log('[AI CLEAN JSON START]:', cleanJsonString.substring(0, 200));
-
-  try {
-    const parsedData = JSON.parse(cleanJsonString);
-    console.log('[AI PARSED KEYS]:', Object.keys(parsedData));
-    return parsedData;
-  } catch (err) {
-    console.error('[AI JSON PARSE FAILED]');
-    console.error('[CLEAN JSON WAS]:', cleanJsonString.substring(0, 1000));
-    throw new Error('Unable to parse generated itinerary structure. Please try generating again.');
+const generateItineraryWithGroq = async (input) => {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error('GROQ_API_KEY is not configured in server environment variables.');
   }
+
+  const groq = new Groq({ apiKey });
+  const primaryModel = 'qwen/qwen3.8-27b';
+  const fallbackModel = 'openai/gpt-oss-120b';
+  const prompt = buildPrompt(input);
+
+  const attempt = async (model, label, useJsonMode) => {
+    console.log(`[AI ATTEMPT] ${label} | model: ${model} | jsonMode: ${useJsonMode}`);
+    let responseText = '';
+
+    try {
+      responseText = await callGroq(groq, model, prompt, useJsonMode);
+    } catch (apiErr) {
+      const errMsg = String(apiErr?.message || '');
+      const isJsonModeError = apiErr?.status === 400 || errMsg.includes('response_format') || errMsg.includes('json_object');
+
+      if (useJsonMode && isJsonModeError) {
+        console.warn(`[AI] JSON mode not supported by ${model}, retrying without it...`);
+        try {
+          responseText = await callGroq(groq, model, prompt, false);
+        } catch (retryErr) {
+          console.error(`[AI] API error on ${label} retry:`, retryErr.message);
+          return null;
+        }
+      } else {
+        console.error(`[AI] API error on ${label}:`, apiErr.message);
+        return null;
+      }
+    }
+
+    if (!responseText) {
+      console.error(`[AI] Empty response from ${model}`);
+      return null;
+    }
+
+    console.log(`[AI RAW ${label}]:`, responseText.substring(0, 400));
+
+    const cleanJson = extractJson(responseText);
+    console.log(`[AI CLEAN ${label}]:`, cleanJson.substring(0, 400));
+
+    if (!cleanJson) {
+      console.error(`[AI] No JSON object found in response from ${model}`);
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(cleanJson);
+      console.log(`[AI PARSED KEYS]:`, Object.keys(parsed));
+      return parsed;
+    } catch (parseErr) {
+      console.error(`[AI PARSE FAILED ${label}]:`, parseErr.message);
+      console.error(`[AI BAD JSON SNIPPET]:`, cleanJson.substring(0, 600));
+      return null;
+    }
+  };
+
+  let result = await attempt(primaryModel, 'try-1-primary', true);
+  if (result) return result;
+
+  console.warn('[AI] Try 1 failed. Retrying primary model...');
+  result = await attempt(primaryModel, 'try-2-primary-retry', true);
+  if (result) return result;
+
+  console.warn('[AI] Try 2 failed. Switching to fallback model...');
+  result = await attempt(fallbackModel, 'try-3-fallback', true);
+  if (result) return result;
+
+  throw new Error(
+    'Unable to generate a valid itinerary at this time. Please try again in a moment.'
+  );
 };
 
 module.exports = { generateItineraryWithGroq };
